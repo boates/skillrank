@@ -91,7 +91,7 @@
 		    var w = 800,
 		        h = 600,
 		        m = 0,
-		        center = {x:280, y:260},
+		        center = {x:270, y:260},
 		        t = {minutes : 1, hour:60, hours:60, day:1440, days:1440},
 		        gravity  = -0.01,
 		        damper   = 0.2,
@@ -143,83 +143,69 @@
 
 			function launch() {
 
-		        force
-			.nodes( terms );
+			        force
+				.nodes( terms );
 
-		        circles = svg
-			.append("g")
-			.attr("id", "circles")
-			.selectAll("a")
-			.data(force.nodes());
-		        // Init all circles at random places on the canvas
-		        force.nodes().forEach( function(d, i) {
-				d.x = Math.random() * w;
-				d.y = Math.random() * h;
-			    });
+			  var node = svg.selectAll(".node")
+			      .data(force.nodes())
+			    .enter().append("g")
+			      .attr("class", "node");
 
-		        var node = circles
-			.enter()
+			  node.append("circle")
+	              .attr("r", function(d) { return rrr( d.count ); })
+				  .style("fill", function(d) {return '#2E8AE6';}) // 6B7CE0
+			      .attr("stroke-width", 3)
+				  .attr("stroke", function(d) {return '#000000';})
 
-			.append("a")
-			.append("circle")
-			.attr("r", 0)
-			.attr("cx", function(d) { return d.x; })
-			.attr("cy", function(d) { return d.y; })
-			.style("fill", function(d) {   
-				             if (d.len == 1) {return '#2E8AE6';}
-				             else {return "#2E8AE6";}  // 6B7CE0
-	        })
-			.attr("stroke-width", 3)
-			.attr("stroke", function(d) {
-				              if (d.len == 1) {return '#000000';}
-				              else {return "#000000";}
-			})
-            .attr("title", function(d) { return d.term; })
+				  .style("opacity", function(d) { return ooo( d.relevance ); })
+				  .on("mouseover", function(d, i) { force.resume(); highlight( d, i, this ); })
+				  .on("mouseout", function(d, i) { downlight( d, i, this ); });
 
-			.style("opacity", function(d) { return ooo( d.relevance ); })
-			.on("mouseover", function(d, i) { force.resume(); highlight( d, i, this ); })
-			.on("mouseout", function(d, i) { downlight( d, i, this ); });	
+			  node.append("text")
+			      .attr("dy", function(d) {
+				                  if (d.len == 1) {return ".3em";}
+				                  else {return "-.3em";}
+			                  })
+				  .style("text-anchor", "middle")
+				  .text(function(d) { return d.term.split(" ")[0]; })
+				  .style("font-size", function(d) {return d.count/2.0;});
 
-//			.append("div").attr("class", "bubble-label-name").text(function(d) {
-//				    return d.term;});
+			  node.append("text")
+			      .attr("dy", "0.9em")
+				  .style("text-anchor", "middle")
+				  .text(function(d) { return d.term.split(" ")[1]; })
+				  .style("font-size", function(d) {return d.count/2.0;});
 
-//	    	.append("text")
-//	        .attr("text-anchor", "middle")
-//    		.text(function(d) { return "the"; });
+			        d3.selectAll(".node")
+				.transition()
+				.delay(function(d, i) { return i * 10; })
+				.duration( 1000 );
 
-		        d3.selectAll("circle")
-			.transition()
-			.delay(function(d, i) { return i * 10; })
-			.duration( 1000 )
-			.attr("r", function(d) { return rrr( d.count ); });
+			        loadGravity( moveCenter );
 
-		        loadGravity( moveCenter );
+			        //Loads gravity
+			        function loadGravity( generator ) {
+			            force
+			               .gravity(gravity)
+			               .charge( function(d) { return g( d.count ); })
+			               .friction(friction)
+			               .on("tick", function(e) {
+						generator(e.alpha);
+			               node
+			 	           .attr("transform", function(d) { 
+				                                   return "translate(" + d.x + "," + d.y + ")"; 
+				                                 });
+					    }).start();
+			        }
 
-		        //Loads gravity
-		        function loadGravity( generator ) {
-		            force
-		                .gravity(gravity)
-		                .charge( function(d) { return g( d.count ); })
-		                .friction(friction)
-		                .on("tick", function(e) {
-					generator(e.alpha);
-		                    node
-		                        .attr("cx", function(d) { return d.x; })
-		                        .attr("cy", function(d) { return d.y; });
-				    }).start();
-		        }
-
-		        // Generates a gravitational point in the middle
-		        function moveCenter( alpha ) {
-		            force.nodes().forEach(function(d) {
-				    d.x = d.x + (center.x - d.x) * (damper + 0.02) * alpha;
-				    d.y = d.y + (center.y - d.y) * (damper + 0.02) * alpha;
-			    	});
-		        }
-
-//             var nnn = svg.selectAll("g")
-
-            }
+			        // Generates a gravitational point in the middle
+			        function moveCenter( alpha ) {
+			            force.nodes().forEach(function(d) {
+					    d.x = d.x + (center.x - d.x) * (damper + 0.02) * alpha;
+					    d.y = d.y + (center.y - d.y) * (damper + 0.02) * alpha;
+				    	});
+			        }
+	        }
 
 			function legend() {
 
@@ -364,7 +350,6 @@
 		function pleaseWait() {
 		    html = '<br><font size=5>Please wait a few seconds :)</font>';
 	    	var x = Math.random();
-        	console.log(x);
     		if (x >= 0.75 && x <= 1.00) { 
 	            html += '<hr><div class="lead">'
 	    		html += '<font size=4>"the" is the most common word ';
