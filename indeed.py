@@ -135,6 +135,9 @@ def jdClean(jd):
     # remove pure numbers
     jd = re.sub(r'\s\d+\s', ' ', jd)
     
+    # remove pure puncuations
+    jd = re.sub(r'\s[\+\#-]+\s', ' ', jd)
+    
     # fix "html css" bigrams / get rid of them
     jd = re.sub(r'html\s+css','html and css', jd)
     

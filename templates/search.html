@@ -169,7 +169,7 @@
 				  .style("text-anchor", "middle")
 				  .text(function(d) { return d.term.split(" ")[0]; })
 				  .style("font-size", function(d) {
-					                    if (rrr(d.count) >= 24) {return d.count/2.0;}
+					                    if (rrr(d.count) >= 30) {return rrr(d.count)/2.5;}
 					                    else {return 12;}
                     			      });
 			  node.append("text")
@@ -177,7 +177,7 @@
 				  .style("text-anchor", "middle")
 				  .text(function(d) { return d.term.split(" ")[1]; })
 				  .style("font-size", function(d) {
-					                    if (rrr(d.count) >= 24) {return d.count/2.0;}
+					                    if (rrr(d.count) >= 30) {return rrr(d.count)/2.5;}
 					                    else {return 12;}
                     			      });
 			        d3.selectAll(".node")
