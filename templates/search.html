@@ -168,14 +168,18 @@
 			                  })
 				  .style("text-anchor", "middle")
 				  .text(function(d) { return d.term.split(" ")[0]; })
-				  .style("font-size", function(d) {return d.count/2.0;});
-
+				  .style("font-size", function(d) {
+					                    if (rrr(d.count) >= 24) {return d.count/2.0;}
+					                    else {return 12;}
+                    			      });
 			  node.append("text")
-			      .attr("dy", "0.9em")
+			      .attr("dy", "0.8em")
 				  .style("text-anchor", "middle")
 				  .text(function(d) { return d.term.split(" ")[1]; })
-				  .style("font-size", function(d) {return d.count/2.0;});
-
+				  .style("font-size", function(d) {
+					                    if (rrr(d.count) >= 24) {return d.count/2.0;}
+					                    else {return 12;}
+                    			      });
 			        d3.selectAll(".node")
 				.transition()
 				.delay(function(d, i) { return i * 10; })
@@ -451,15 +455,6 @@
        Data Science 2013 | Job description data provided via 
        <b><a href="http://www.indeed.com" target="_blank">Indeed.com</a></b>
 	</div>
-
-</div></div></div></div>
-
-      <div>
-
-      </div>
-
-    </div> <!-- /container -->
-
 
   </body>
 </html>
