@@ -1,0 +1,139 @@
+<!DOCTYPE HTML>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Skill Rank</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <script type="text/javascript"  src="../static/js/jquery.min.js"></script>
+    <script type="text/javascript" src="static/js/bootstrap.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/brian.css') }}">
+
+    <style type="text/css">
+      body {
+        padding-top: 10px;
+        padding-bottom: 20px;
+      }
+
+      /* Custom container */
+      .container-narrow {
+        margin: 0 auto;
+        max-width: 800px;
+      }
+      .container-narrow > hr {
+        margin: 10px 0;
+      }
+
+      /* Main marketing message and sign up button */
+      .jumbotron {
+        margin: 60px 0;
+        text-align: center;
+      }
+      .jumbotron h1 {
+        font-size: 72px;
+        line-height: 1;
+      }
+      .jumbotron .btn {
+        font-size: 21px;
+        padding: 14px 24px;
+      }
+
+      /* Supporting marketing content */
+      .marketing {
+        margin: 60px 0;
+      }
+      .marketing p + h4 {
+        margin-top: 28px;
+      }
+    </style>
+
+  </head>
+
+  <body>
+
+    <div class="container-narrow">
+
+      <div class="masthead">
+        <ul class="nav nav-pills pull-right">
+          <li><a href="{{ url_for('home') }}">Home</a></li>
+          <li><a href="{{ url_for('search') }}">Search</a></li>
+          <li class="active"><a href="{{ url_for('about') }}">About</a></li>
+          <li><a href="{{ url_for('data') }}">Data</a></li>
+          <li><a href="{{ url_for('source') }}">Source</a></li>
+          <li><a href="{{ url_for('contact') }}">Contact</a></li>
+        </ul>
+        <h3 class="muted">Skill Rank</h3>
+      </div>
+
+      <hr>
+<div class="jumbotron">
+<h1><center>Skill Rank</center></h1>
+<p class="lead"><font size=4>
+Skill Rank scours job postings from the web
+(<a href="http://www.indeed.com">Indeed.com</a>)
+and uses a sophisticated ranking system to tell 
+you the <b>most relevant skills</b> required for 
+a particular position.
+</font></p>
+<hr>
+<h2><center> How it works - <font color="red">math alert!</font></center></h2>
+<div>
+<font face="helvetica">
+Skill Rank uses an augmented TF-IDF (term frequency-inverse document frequency) 
+approach to identify key words in a particular job title query. Enough jargon... 
+Skill Rank maintains a large database of terms scraped 
+from thousands of online job postings and how frequently 
+those terms appear. This serves as background reference 
+data for your job title query. When you perform a query, 
+Skill Rank tracks the terms from those particular postings 
+and how frequently they appear as well. From there, the 
+relevance of a particular term resulting from your query 
+is determined by the number of times it occurs (on average) 
+in your query vs. the number of times it occurs (on average) 
+in the background reference data set.
+<br><br>
+If a word is extremely 
+common in general (e.g. "and"), and is equally common in the 
+particular query, it will receive a low relevance score. 
+However, if a word is uncommon in the reference database, 
+but fairly common for the particular query, it will receive 
+a higher relevance score. The more reference data Skill Rank 
+possesses, the more powerful the algorithm becomes.
+<br><br>
+Mathematically speaking... the "relevance score" <i>R</i> is computed as:
+<br>
+<center>
+| <img src="static/img/f_ref.jpg" width="125" hspace="25" vspace="10">
+| <img src="static/img/f_query.jpg" width="165" hspace="25" vspace="10"> |
+<br>
+| <img src="static/img/relevance.jpg" width="410" hspace="20" vspace="10"> |
+</center>
+where <i>i</i> denotes the particular term under consideration, "<i>ref</i>" 
+and "<i>query</i>" represent whether the quantity is from the reference 
+data or the user's query data, <i>C</i> represents the term's occurrence 
+(or "count"), and angle brackets indicate an average over all terms. 
+<i>f</i> is a normalized occurrence factor (normalized by the average 
+term occurrence from the respective dataset) and <i>R</i> is the 
+"relevance score" for term <i>i</i>. The free parameter <i>x</i> 
+controls the weighting fraction for the actual query count by the 
+logarithm of the relative term frequencies (ranging from 0: relevance 
+equivalent query counts, to 1: relevance as fully scaled query count). 
+Good values of <i>x</i> are typically between 0.5 and 1.0; by default 
+<i>x</i> is set to 0.60.
+</font>
+<br><br>
+</div></div>
+
+<hr>
+      <div class="footer">
+        <p>
+	    &copy; Brian Boates; <b><a href="http://insightdatascience.com" target="_blank">Insight</a></b> Data Science 2013</b>
+        </p>
+      </div>
+
+    </div> <!-- /container -->
+
+  </body>
+</html>

@@ -1,0 +1,480 @@
+<!DOCTYPE HTML>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Skill Rank</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <script type="text/javascript"  src="../static/js/jquery.min.js"></script>
+    <script type="text/javascript" src="../static/js/bootstrap.js"></script>
+    <script type="text/javascript" src="../static/js/d3.v3.min.js"></script>
+    <script type="text/javascript" src="../static/js/tooltip.js"></script>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/brian.css') }}">
+    <link rel="stylesheet" href="../static/css/bubbles.css"></link>
+
+    <style type="text/css">
+      body {
+        padding-top: 10px;
+        padding-bottom: 20px;
+      }
+
+      /* Custom container */
+      .container-narrow {
+        margin: 0 auto;
+        max-width: 800px;
+      }
+      .container-narrow > hr {
+        margin: 10px 0;
+      }
+
+      /* Main marketing message and sign up button */
+      .jumbotron {
+        margin: 60px 0;
+        text-align: center;
+      }
+      .jumbotron h1 {
+        font-size: 72px;
+        line-height: 1;
+      }
+      .jumbotron .btn {
+        font-size: 21px;
+        padding: 14px 24px;
+      }
+
+      /* Supporting marketing content */
+      .marketing {
+        margin: 60px 0;
+      }
+      .marketing p + h4 {
+        margin-top: 28px;
+      }
+
+	.postingtable {
+	}
+	
+	.d3visual {
+		margin-top:-100;
+    }
+
+	ul.d3visual li {
+		float:left;
+		list-style:none;
+		text-decoration:none;
+	}
+	
+	.fightbootstrap {
+		padding-bottom:50px;
+	}
+	
+	#bigbubbles {
+		margin-left:50px;
+		width:100px;
+		height:100px;
+	}
+	
+	.fightfooter {
+		height:510px;
+		width:800px;
+	}
+	
+    </style>
+
+
+	<script type="text/javascript">
+	function visualize() {
+		
+		var bubbles = (function() {
+			
+		    var w = 800,
+		        h = 600,
+		        m = 0,
+		        center = {x:280, y:260},
+		        t = {minutes : 1, hour:60, hours:60, day:1440, days:1440},
+		        gravity  = -0.01,
+		        damper   = 0.2,
+		        friction = 0.9,
+		        force = d3
+		            .layout
+			.force()
+			.size([ w-m, h-m ]),
+		        svg = d3         //container
+			.select("body article")
+			.append("svg")
+			.attr("height", h + "px")
+			.attr("width", w + "px"),
+		        circles,
+		        tooltip = CustomTooltip( "posts_tooltip", 240 );
+		
+			function init(results) {
+			    if ( results ) {
+                    run(results, function() {
+	                    launch();
+//	                    legend();
+                        });
+			    }
+			}
+
+			function run(results, callback){
+				terms = results.items;
+//				bigrams = results.bigrams;
+
+				// RANGE OF SIZE FOR CIRCLES ---> use for COUNT
+				rrr = d3.scale.linear()
+				.domain([ d3.min(terms, function(d) { return d.count; }),
+				          d3.max(terms, function(d) { return d.count; }) ])
+				.range([ 10, 90 ])  // NORMALIZE COUNTS FROM 10 TO 100
+		        .clamp(true);   // HARD BOUNDS
+
+		        // CIRCLE FADING GRADIENT ---> USE FOR RELEVANCE FACTOR
+			    ooo = d3.scale.linear()
+			    .domain([ d3.min(terms, function(d) { return d.relevance; }),
+	    			      d3.max(terms, function(d) { return d.relevance; }) ])
+			    .range([ 0.25, 1.0 ])
+//			    .clamp(true);
+
+		        // LAST NUMBER (2.5) CONTROLS CLOSENESS OF CIRCLES, HIGHER = CLOSER
+			    g = function(d) { return -rrr(d) * rrr(d) / 2.5; };
+
+			    callback();
+			}
+
+			function launch() {
+
+		        force
+			.nodes( terms );
+
+		        circles = svg
+			.append("g")
+			.attr("id", "circles")
+			.selectAll("a")
+			.data(force.nodes());
+		        // Init all circles at random places on the canvas
+		        force.nodes().forEach( function(d, i) {
+				d.x = Math.random() * w;
+				d.y = Math.random() * h;
+			    });
+
+		        var node = circles
+			.enter()
+
+			.append("a")
+//			.attr('xlink:href',function(d){return 'http://en.wikipedia.org/wiki/'+d.term;})
+			.append("circle")
+			.attr("r", 0)
+			.attr("cx", function(d) { return d.x; })
+			.attr("cy", function(d) { return d.y; })
+			.style("fill", function(d) {   
+				             if (d.len == 1) {return '#2E8AE6';}
+				             else {return "#2E8AE6";}  // 5D6B6B
+	        })
+			.attr("stroke-width", 3)
+			.attr("stroke", function(d) {
+				              if (d.len == 1) {return '#000000';}
+				              else {return "#000000";}
+			})
+            .attr("title", function(d) { return d.term; })
+
+			.style("opacity", function(d) { return ooo( d.relevance ); })
+			.on("mouseover", function(d, i) { force.resume(); highlight( d, i, this ); })
+			.on("mouseout", function(d, i) { downlight( d, i, this ); });	
+
+		        d3.selectAll("circle")
+			.transition()
+			.delay(function(d, i) { return i * 10; })
+			.duration( 1000 )
+			.attr("r", function(d) { return rrr( d.count ); });
+
+//               d3.selectAll("circle")
+//		    .append("text")
+//		    .attr("dy", ".3em")
+//	    	.attr("text-anchor", "middle")
+//    		.text(function(d) { return "the"; });
+
+		        loadGravity( moveCenter );
+
+		        //Loads gravity
+		        function loadGravity( generator ) {
+		            force
+		                .gravity(gravity)
+		                .charge( function(d) { return g( d.count ); })
+		                .friction(friction)
+		                .on("tick", function(e) {
+					generator(e.alpha);
+		                    node
+		                        .attr("cx", function(d) { return d.x; })
+		                        .attr("cy", function(d) { return d.y; });
+				    }).start();
+		        }
+
+		        // Generates a gravitational point in the middle
+		        function moveCenter( alpha ) {
+		            force.nodes().forEach(function(d) {
+				    d.x = d.x + (center.x - d.x) * (damper + 0.02) * alpha;
+				    d.y = d.y + (center.y - d.y) * (damper + 0.02) * alpha;
+			    	});
+		        }
+
+//             var nnn = svg.selectAll("g")
+
+            }
+
+			function legend() {
+
+			    var linearGradient = svg.append("defs")
+			    .append("linearGradient")
+			    .attr("id", "legendGradient")
+			    .attr("x1", "0%")
+			    .attr("y1", "0%")
+			    .attr("x2", "100%")
+			    .attr("y2", "0%")
+			    .attr("spreadMethod", "pad");
+
+		        linearGradient
+		            .append("stop")
+		            .attr("offset", "0%")
+		            .attr("stop-color", "#3385FF")
+		            .attr("stop-opacity", "0.0");
+
+		        linearGradient
+		            .append("stop")
+		            .attr("offset", "100%")
+		            .attr("stop-color", "#3385FF")
+		            .attr("stop-opacity", "1");
+
+			    var legend = svg.append("g")
+			    .attr("id", "legend");
+
+   		        legend
+		            .append("rect")
+		            .attr("x", "-10")
+		            .attr("y", "9")
+		            .attr("width", "180")
+		            .attr("height", "26")
+		            .attr("style", "fill:url(#legendGradient);");
+
+		        legend
+		            .append("text")
+		            .attr("x", 68)
+		            .attr("y", 29)
+		            .style("font-size","20")
+		            .text("Relevance");
+			}
+			
+			function highlight(data, i, element) {
+			    d3.select(element).attr("stroke", "#000000");
+
+                var content = '<div>'+
+                              '<table CELLPADDING=\"1\" CELLSPACING=\"2\" WIDTH=\"100%\">'+
+
+                              '<tbody><tr><td width=\"100%\">'+
+                              '<font size=5><center><b>'+data.term+
+                              '</b></center></font></td></tr>'+
+
+                              '<tr><td width=\"100%\">'+
+                              '<font size=2><br><center> Found '+
+                              parseInt(data.count)+' times; Uniqueness: '+
+                              parseInt(data.relevance*100)+'%</center></td></tr>'+
+
+                              '<tr>'+
+                              '<table CELLPADDING=\"1\" CELLSPACING=\"2\" WIDTH=\"100%\">'+
+                              '<tbody><tr><td vertical-align=top align="center" width=\"25%\">'+
+                              '</font><br><a href=\"https://www.google.com/#hl=en&sugexp='+
+                              'les%3B&gs_rn=2&gs_ri=hp&tok=cnl0TEhR7cM9pfQFq_5gBg&cp='+
+                              '4&gs_id=e&xhr=t&q='+data.term+'\" target=\"_blank\">'+
+                              '<img src=\"../static/img/google.png\" width=50></a></td>'+
+
+                              '<td vertical-align=top align="center" width=\"25%\">'+
+                              '</font><br><a href=\"http://en.wikipedia.org/wiki/'+
+                              data.term+'\" target=\"_blank\">'+
+                              '<img src=\"../static/img/wikipedia.jpg\" width=50></a></td>'+
+
+                              '<td vertical-align=top align="center" width=\"25%\">'+
+                              '</font><br><a href=\"http://www.amazon.com/s/?url='+
+                              'search-alias%3Dstripbooks&field-keywords='+data.term+
+                              '\" target=\"_blank\">'+
+                              '<img src=\"../static/img/amazon.png\" width=59></a></td>'+
+
+                              '<td vertical-align=top align="center" width=\"25%\">'+
+                              '</font><br><a href=\"http://www.linkedin.com/jsearch?'+
+                              'keywords='+data.term+'\" target=\"_blank\">'+
+                              '<img src=\"../static/img/linkedin.png\" width=54></a></td>'+
+
+                              '</td></tr></tbody></table>'+
+                              '</td></tr></tbody></table>'+
+                              '</div>';
+                  
+			    tooltip.showTooltip(content, d3.event);
+			}
+
+			function downlight(data, i, element) {
+			    d3.select(element).attr("stroke", "#000000");
+			}
+
+			return {init:init};
+			
+	    })();
+
+        // make the table of results (only the top 20)
+        function makeTable(results) {
+	        var words = results['items'];
+	        var html = '<table class="table table-striped">'+
+	                   '<thead><tr>'+
+	                   '<th><font size=4>#</font></th>'+
+	                   '<th><font size=4>Skill</font></th>'+
+//	                   '<th>Relevance</th><th>Found</th>'+
+	                   '</font></tr></thead><tbody>';
+	        for (var i=0; i <= 9; i++) {
+		        html += '<tr>';
+		        html += '<td align="center"><font size=4>';
+		        html += i+1;
+		        html += '</font></td>';
+		        html += '<td align="center"><font size=4>';
+		        html += words[i].term;
+		        html += '</font></td>';
+//		        html += '<td align="center"><font size=3>';
+//		        html += parseInt(words[i].relevance*100);
+//		        html += '%</font></td>';
+//		        html += '<td align="center"><font size=3>';
+//		        html += words[i].count;
+//		        html += '</font></td>';
+		        html += '</tr>';
+        	}
+            html += '</tbody></table>';
+
+            // remove the "please wait" statement
+            $("#resultstable").html(html);
+            $("#pleaseWait").html('');
+        }
+
+		function cback(results) {
+            if (results['items']) {
+                $("#pleaseWait").html('');
+    			bubbles.init(results)
+                makeTable(results)
+            }
+            else {
+             	console.log("no matches for query")
+            }
+		}
+		
+		// please wait statment
+		function pleaseWait() {
+		    html = '<br><font size=5>Please wait a few seconds :)</font>';
+	    	var x = Math.random();
+        	console.log(x);
+    		if (x >= 0.75 && x <= 1.00) { 
+	            html += '<hr><div class="lead">'
+	    		html += '<font size=4>"the" is the most common word ';
+	            html += 'in the English language. ';
+	            html += '<br>However, "and" appears twice as ';
+	            html += 'often in an average job posting.</font><div><hr>';
+    	   	}
+            else if (x >= 0.50 && x < 0.75 ) {
+	            html += '<hr><div class="lead">';
+	    		html += '<font size=4>"experience" is the 11th most common word ';
+	            html += 'found in job postings, <br>appearing about 2.7 times on ';
+	            html += 'average.</font></div><hr>';
+	        }
+            else if (x >= 0.25 && x < 0.50 ) {
+	            html += '<hr><div class="lead">';
+	    		html += '<font size=4>37 words appear more than once per job ';
+	            html += 'posting on average.<br>Check out our <b>Data</b> page ';
+	            html += 'for more info!</font></div><hr>';
+	        }
+            else if (x >= 0.00 && x < 0.25 ) {
+	            html += '<hr><div class="lead">';
+	    		html += '<font size=4>Skill Rank has scraped over 10,000 job ';
+	            html += 'postings in order <br>to best identify key skills. ';
+	            html += 'For more information on how <br>this is done, check out ';
+	            html += 'the <b>About</b> page</font></div><hr>';
+	        }
+            else {
+	            html += '';
+            }
+            $("#pleaseWait").html(html);
+        }
+
+        pleaseWait();
+		
+		// post function
+   		var url = "/analyze";
+        var Q = $("#query").val();
+        var N = $("#njobs").val();
+        var S = 0;
+   	    $.post(url, {'jobQuery':Q,'nJobs':N,'start':S}, cback);
+
+	}
+	</script>
+
+
+  </head>
+  <body>
+
+    <div class="container-narrow">
+      <div class="masthead">
+        <ul class="nav nav-pills pull-right">
+          <li><a href="{{ url_for('home') }}">Home</a></li>
+          <li class="active"><a href="{{ url_for('search') }}">Search</a></li>
+          <li><a href="{{ url_for('about') }}">About</a></li>
+          <li><a href="{{ url_for('data') }}">Data</a></li>
+          <li><a href="{{ url_for('source') }}">Source</a></li>
+          <li><a href="{{ url_for('contact') }}">Contact</a></li>
+        </ul>
+        <h3 class="muted">Skill Rank</h3>
+      </div>
+      <hr>
+
+	<div align="center">
+	<div align="center" id="container" style="height:100%;">
+	  <div id="viz_span" style="padding:0px;">
+	    <div style="width:600px;" align="center" class="searchbox">
+
+	        <form method="POST">
+
+            <input onkeydown="if (event.keyCode == 13) {visualize(this); return false;}"
+                   class="input-xlarge" type="text" id="query" name="jobQuery" 
+                   placeholder="Type a job title here :)">&#160;&#160;
+            <button onclick="visualize();" class="btn btn-primary btn-large" type="button">
+	        <font>Find Skills!</font>
+	        </button>
+	        </form>
+	    </div>
+
+<div id="pleaseWait">
+</div>
+	
+<div class="fightfooter">
+	<ul class="d3visual">
+		<li class="fightbootstrap">
+			<div class="postingtable" id="resultstable">
+		    </div>
+		</li>
+		<li>
+			<article id="bigbubbles">
+			</article>
+		</li>
+	</ul>
+</div>
+
+<hr>
+	<div>
+       &copy; Brian Boates;
+       <b><a href="http://insightdatascience.com" target="_blank">Insight</a></b>
+       Data Science 2013 | Job description data provided via 
+       <b><a href="http://www.indeed.com" target="_blank">Indeed.com</a></b>
+	</div>
+
+</div></div></div></div>
+
+      <div>
+
+      </div>
+
+    </div> <!-- /container -->
+
+
+  </body>
+</html>
