@@ -10,7 +10,6 @@ from flask import request, jsonify
 import MySQLdb as mdb
 from analysis import getResults
 
-# create new instance of Flask class
 app = Flask(__name__)
 
 @app.route('/')
