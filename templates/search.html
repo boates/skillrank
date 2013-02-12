@@ -161,14 +161,13 @@
 			.enter()
 
 			.append("a")
-//			.attr('xlink:href',function(d){return 'http://en.wikipedia.org/wiki/'+d.term;})
 			.append("circle")
 			.attr("r", 0)
 			.attr("cx", function(d) { return d.x; })
 			.attr("cy", function(d) { return d.y; })
 			.style("fill", function(d) {   
 				             if (d.len == 1) {return '#2E8AE6';}
-				             else {return "#2E8AE6";}  // 5D6B6B
+				             else {return "#2E8AE6";}  // 6B7CE0
 	        })
 			.attr("stroke-width", 3)
 			.attr("stroke", function(d) {
@@ -181,17 +180,18 @@
 			.on("mouseover", function(d, i) { force.resume(); highlight( d, i, this ); })
 			.on("mouseout", function(d, i) { downlight( d, i, this ); });	
 
+//			.append("div").attr("class", "bubble-label-name").text(function(d) {
+//				    return d.term;});
+
+//	    	.append("text")
+//	        .attr("text-anchor", "middle")
+//    		.text(function(d) { return "the"; });
+
 		        d3.selectAll("circle")
 			.transition()
 			.delay(function(d, i) { return i * 10; })
 			.duration( 1000 )
 			.attr("r", function(d) { return rrr( d.count ); });
-
-//               d3.selectAll("circle")
-//		    .append("text")
-//		    .attr("dy", ".3em")
-//	    	.attr("text-anchor", "middle")
-//    		.text(function(d) { return "the"; });
 
 		        loadGravity( moveCenter );
 
@@ -274,8 +274,8 @@
                               '</b></center></font></td></tr>'+
 
                               '<tr><td width=\"100%\">'+
-                              '<font size=2><br><center> Found '+
-                              parseInt(data.count)+' times; Uniqueness: '+
+                              '<font size=2><center> Found '+
+                              parseInt(data.count)+' times; Association: '+
                               parseInt(data.relevance*100)+'%</center></td></tr>'+
 
                               '<tr>'+
