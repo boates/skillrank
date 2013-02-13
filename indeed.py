@@ -234,3 +234,4 @@ def threadResults(urls, nThreads=8):
     for thread in threads:
         documents += thread.getArticles()
     return documents
+
