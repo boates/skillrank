@@ -70,15 +70,15 @@
 	}
 	
 	#bigbubbles {
-		margin-left:50px;
+		margin-left:10px;
 		width:100px;
 		height:100px;
 	}
 	
 	.fightfooter {
-		height:510px;
+		height:560px;
 		width:800px;
-		margin-left:-60px;
+		margin-left:-30px;
 	}
     </style>
 
@@ -122,10 +122,10 @@
 //				bigrams = results.bigrams;
 
 				// RANGE OF SIZE FOR CIRCLES ---> use for COUNT
-				rrr = d3.scale.linear()
+				rrr = d3.scale.sqrt()
 				.domain([ d3.min(terms, function(d) { return d.count; }),
 				          d3.max(terms, function(d) { return d.count; }) ])
-				.range([ 10, 90 ])  // NORMALIZE COUNTS FROM 10 TO 100
+				.range([ 10, 70 ])  // NORMALIZE COUNTS FROM 10 TO 100
 		        .clamp(true);   // HARD BOUNDS
 
 		        // CIRCLE FADING GRADIENT ---> USE FOR RELEVANCE FACTOR

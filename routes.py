@@ -53,7 +53,7 @@ def runAnalysis():
     nJobs = 50
     
     # set number of bubbles for d3 visualization
-    nBubbles = 30
+    nBubbles = 25
     
     # get the results as list[tuple(term,relevance,count)]
     results, biResults = getResults(jobQuery=jobQuery, nJobs=nJobs, start=start)
@@ -71,6 +71,12 @@ def runAnalysis():
         # pop the result out of both lists to keep in sync
         counts.pop(maxC)
         results.pop(maxC)
+        
+    # filter single letters R and C if at top
+    # more likely a bug than reality
+    if newResults[0][0]+newResults[1][0] in ['cr','rc']:
+        newResults = newResults[2:]
+        
     # update results to newResults
     results = newResults[:nBubbles]
     

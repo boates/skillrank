@@ -220,6 +220,14 @@ def analyze(cur, jobQuery, terms, x=0.6, nReturn=100, threshold=1):
     # differing by one extra letter, probably rare/okay)
     resultWords = [r[0] for r in results]
     results = [r for r in results if r[0][:-1] not in resultWords]
+    
+    # remove 'ing words if stemmed word in list
+    ingRemoval = []
+    for w, r, c in results:
+        if w+'ing' in resultWords:
+            ingRemoval.append(w)
+            print w, 'to be removed'
+    results = [r for r in results if r[0] not in ingRemoval]
         
     return results, biResults
 
