@@ -17,8 +17,33 @@ def home():
     return render_template('home.html')
 
 
+@app.route('/search')
+def search():
+    return render_template('search.html')
+
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
+
+@app.route('/data')
+def data():
+    return render_template('data.html')
+
+
+@app.route('/source')
+def source():
+    return render_template('source.html')
+
+
+@app.route('/contact')
+def contact():
+    return render_template('contact.html')
+
+
 @app.route('/analyze', methods=['POST'] )
-def findSkills():
+def runAnalysis():
     
     # get jobQuery and start
     jobQuery = request.form['jobQuery']
@@ -61,60 +86,9 @@ def findSkills():
     for term, relevance, count in results:
             dictResults['items'].append({'term':term, 'relevance':relevance,
                                          'count':float(count), 'len':len(term.split())})
-         
+                                         
     # return in jsonified format
     return jsonify(dictResults)
-
-
-@app.route('/search', methods=['GET', 'POST'])
-def search():
-    
-    # if the search bar is being used
-    if request.method == 'POST':
-        
-        # get jobQuery, nJobs, and start
-        jobQuery = request.form['query']
-        nJobs    = int(request.form['njobs'])
-        start    = int(request.form['start'])
-        
-        # prepare the results header
-        nJobsString = 'Key skills based on '+str(nJobs)+' job postings for \"'+jobQuery+'\"'
-        
-        results = getResults(jobQuery, nJobs, start)
-        
-        # render the template with the results
-        return render_template('search.html', results=results, nJobsString=nJobsString,
-                                              th=("Skill","Relevance","Occurence"))
-                                              
-    # otherwise just return home.html
-    return render_template('search.html', th=('','',''))
-
-
-@app.route('/empty', methods=['GET', 'POST'])
-def empty():
-    return render_template('empty.html')
-
-
-@app.route('/about')
-def about():
-    return render_template('about.html')
-
-
-@app.route('/data')
-def data():
-    return render_template('data.html')
-
-
-@app.route('/source')
-def source():
-    return render_template('source.html')
-
-
-@app.route('/contact')
-def contact():
-    return render_template('contact.html')
-
-
 
 
 if __name__ == '__main__':
