@@ -64,7 +64,7 @@ def getNgrams(strings, N=2):
     return: list of strings of N-grams (e.g. bigrams, trigrams, etc.)
     params:
         strings: list of strings to make the N-grams from
-        N: int | the N in N-gram (default = 2 for bigram)
+              N: int | the N in N-gram (default = 2 for bigram)
     """
     # initiate list for N-grams
     grams = []
@@ -109,7 +109,7 @@ def getBigrams(words, num=100):
     """
     return: list[tuple(string, string)]
     params:
-            words: list[string] | list of words as strings
+          words: list[string] | list of words as strings
             num: int | number of bigrams to return (default=100)
     """
     from StringIO import StringIO
@@ -131,102 +131,4 @@ def getBigrams(words, num=100):
     bigrams = [c[0]+' '+c[1] for c in text._collocations]
     
     return bigrams
-
-
-def readKeywords(fname='keywords.txt'):
-    """
-    return: list of keywords from keywords.txt
-    params:
-            fname: string | filename with stored keywords
-    """
-    # open keywords file
-    f = open(fname, 'rU')
-    
-    # loop over lines in file and create keywords list
-    keywords = []
-    for line in f:
-        
-        # clean the keywords as you would the job description
-        line = re.sub('[^A-Za-z0-9\s\+-]+', ' ', line).lower().strip()
-        
-        # append line to keywords
-        keywords.append(line)
-        
-        # include extra entries for hyphenated terms
-        if '-' in line:
-            keywords.append(line.replace('-',' '))
-            
-    return keywords    
-
-
-def readCommonWords(fname='commonwords.txt'):
-    """
-    return: list of "common" words as strings
-    params:
-            fname: string | filename with stored common words
-    """
-    # open commonwords file
-    f = open(fname, 'rU')
-    
-    # loop over lines in file and create commonwords list
-    commonwords = []
-    for line in f:
-        
-        # clean the commonwords as you would the job description
-        line = re.sub('[^A-Za-z0-9\s\+-]+', ' ', line).lower().strip()
-        
-        # append line to commonwords
-        commonwords.append(line)
-        
-    return commonwords
-
-
-def removeCommonWords(words):
-    """
-    return: modified "words" list where the pre-determined
-            "common" words have been removed
-    params:
-            words: list[string] | original list of words
-    """
-    # common words list
-    commons = readCommonWords()
-    
-    # loop over words list and only keep "uncommon" words
-    new = []
-    for word in words:
-        if word not in commons: new.append(word)
-        
-    return new
-
-
-def union(A, B):
-    """
-    return: A U B
-    params:
-            A: list[x] | a list of items
-            B: list[x] | a list of items (not unique)
-    """
-    return A + B
-
-
-def intersection(A, B):
-    """
-    return: A intersect B
-    params:
-            A: list[x] | a list of items
-            B: list[x] | a list of items (not unique)
-    """
-    return [t for t in A if t in B]
-
-
-def jaccard(A, B):
-    """
-    return: jaccard distance J(A,B)
-            J(A,B) = 1 - |A intersect B| ) / |A U B|
-    params:
-            A: list[x] | a list of items
-            B: list[x] | a list of items (not unique)
-    """
-#    return 1 - len( intersection(A,B) ) / float( len( union(A,B) ) )
-    return 1 - B.count(A[0]) / float( len( union(A,B) ) )
 

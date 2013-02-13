@@ -20,7 +20,7 @@ def dbRemove(db='skillrank'):
     """
     WARNING! This function will drop current skillrank database
     params:
-        db: string | the name of the MySQL database
+            db: string | the name of the MySQL database
     """
     # connect to MySQL
     con = mdb.connect(host='localhost', user='root')
@@ -41,7 +41,7 @@ def dbCreate(db='skillrank'):
     """
     Create the MySQL skillrank database
     params:
-        db: string | the name of the MySQL database
+            db: string | the name of the MySQL database
     """
     # connect to MySQL
     con = mdb.connect(host='localhost', user='root')
@@ -83,7 +83,7 @@ def newJobkey(cur, jobkey):
     """
     Return True/False if jobkey is new/already in table
     params:
-        cur: cursor to skillrank database
+           cur: cursor to skillrank database
         jobkey: string | indeed.com unique job posting ID
     """
     # jobkeys table
@@ -104,9 +104,9 @@ def updateTermCount(cur, term, table='bkgd_words'):
     or initialize to 1 if not already present
     return: 0 if table update was successful
     params:
-            cur:    cursor to skillrank database
-            table:  skillrank db table to use
-            term:   term to update in skillrank database
+            cur: cursor to skillrank database
+          table: skillrank db table to use
+           term: term to update in skillrank database
     """
     # check to see if term is already in terms table
     cur.execute("SELECT * FROM "+table+" WHERE term = \'"+term+"\'")
@@ -130,7 +130,7 @@ def getPostings(jobQuery, nURLs=1, start=0):
     return: jobkeys  | list[string] | list of job postings unique ID
             allterms | list[list[string]] | list of list of words from job postings
     params:
-            jobQuery: string | default empty string (generic job search)
+         jobQuery: string | default empty string (generic job search)
             nJobs: int | number of job postings to search (default=499 (500 max allowed))
             start: int | index to begin api url search
     """
@@ -162,8 +162,8 @@ def insertPosting(cur, jobkey, words):
             False if jobkey is not new
     params:
             cur: cursor to skillrank database
-            jobkey: string | indeed.com unique job posting ID
-            words: list[string] list of words from a single job posting
+         jobkey: string | indeed.com unique job posting ID
+          words: list[string] list of words from a single job posting
     """
     # bkgd tables
     jTable = 'bkgd_jobkeys'

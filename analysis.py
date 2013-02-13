@@ -3,160 +3,22 @@
 analysis.py
 Author: Brian Boates
 
-Perform skill rank analysis using term counts
-from query and bkgd tables
+Skill rank analysis functions
 """
 import os, sys, math
 import MySQLdb as mdb
 import indeed, utils
-
-def nTerms(cur, table):
-    """
-    return: int | highest count of all terms from table
-    params:
-            cur: cursor to skillrank database
-            table: string | table name for max(count)
-    """
-    # Column length for a given table
-    cur.execute("SELECT id FROM "+table+" ORDER BY id DESC LIMIT 1")
-    
-    # retrieve the column length
-    fetch = cur.fetchone()
-    
-    # check if term and count were present, if so return them
-    if fetch: return fetch[0]
-    else:     return None, 0    
-
-
-def termCount(cur, term, table):
-    """
-    return: int | term's count in table
-    params:
-            cur: cursor to skillrank database
-            term: string | term to find count for
-            table: string | table name for term's count
-    """
-    # Find the term with highest count in given table
-    cur.execute("SELECT count FROM "+table+" WHERE term = \'"+term+"\'")
-    
-    # retrieve term's count
-    fetch = cur.fetchone()
-    
-    # check if term and count were present, if so, return count
-    if fetch: return fetch[0]
-    else:     return 0
-
-    
-def maxCount(cur, table):
-    """
-    return: int | highest count of all terms from table
-    params:
-            cur: cursor to skillrank database
-            table: string | table name for max(count)
-    """
-    # Find the term with highest count in given table
-    cur.execute("SELECT term,count FROM "+table+" ORDER BY count DESC LIMIT 1")
-    
-    # retrieve the term and count
-    fetch = cur.fetchone()
-    
-    # check if term and count were present, if so return them
-    if fetch: return fetch[0], fetch[1]
-    else:     return None, 0    
-
-
-def sumCount(cur, table):
-    """
-    return: int | sum of all counts of all terms from table
-    params:
-            cur: cursor to skillrank database
-            table: string | table name for max(count)
-    """
-    # sum all counts in given table
-    cur.execute("SELECT SUM(count) AS count FROM "+table)
-    
-    # return the sum of all term counts
-    fetch = cur.fetchone()
-    
-    # check for NULL sum
-    if fetch: return fetch[0]
-    else:     return 0
-
-
-def commonness(cur, term, table):
-    """
-    return: float | commonness factor computed as termCount/maxCount
-                  | exists [0,1]
-    params:
-            cur: cursor to skillrank database
-            term: string | term to compute commonness for
-            table: string | table name for counts
-    """
-    return termCount(cur, term, table) / float(maxCount(cur, table)[-1])
-
-
-def rareness(cur, term, table):
-    """
-    return: float | rareness factor computed as 1 - termCount/maxCount
-                  | exists [0,1]
-    params:
-            cur: cursor to skillrank database
-            term: string | term to compute rareness for
-            table: string | table name for counts
-    """
-    return 1 - commonness(cur, term, table)
-
-
-def bkgdFreq(cur, term):
-    """
-    frequency is defined here as number of counts for 
-    term divided by count for the average word
-    
-    return: float | frequency as described above
-    params:
-        cur: cursor to skillrank db
-        term: string | term to compute frequency for
-    """
-    # determine the length of the term (word, bigram, trigram, etc.)
-    length = len(term.split())
-    
-    # if term is a word
-    if length == 1: bkgd_table = 'bkgd_words'
-        
-    # if term is a bigram
-    elif length == 2: bkgd_table = 'bkgd_bigrams'
-        
-    # if term is a trigram
-    elif length == 3: bkgd_table = 'bkgd_trigrams'
-        
-    # if term is not a word, bigram, or trigram, return R=0
-    else: return 0
-    
-    # get the background count for term from db
-    cur.execute("SELECT count from "+bkgd_table+" WHERE term=\'"+term+"\'")
-    fetch = cur.fetchone()
-    
-    # check for NULL count
-    if fetch: C_bkgd = fetch[0]
-    else:     return 0
-    
-    # get the count for average word in bkgd (nTerms != 0)
-    C_bkgd_avg = float(sumCount(cur, bkgd_table)) / nTerms(cur, bkgd_table)
-    
-    # compute the bkgd frequency for term
-    return C_bkgd / C_bkgd_avg
-
 
 def relevance(f_query, f_bkgd, termCount, x=0.6):
     """
     return: float | relevance factor computed as described on 
                     Skill Rank "About" page: R = log( f_query/f_bkgd )
     params:
-            f_bkgd:  float | "frequency" of word in background
-            f_query: float | "frequency" of word in query
-            termCount: int | number of occurences of term
+            f_bkgd: float | "frequency" of word in background
+           f_query: float | "frequency" of word in query
+         termCount: int | number of occurences of term
     """
-    return (  x*math.log(f_query/f_bkgd) + (1-x) ) * termCount
+    return ( x*math.log(f_query/f_bkgd) + (1-x) ) * termCount
 
 
 def bkgdGet(cur, table):
@@ -164,12 +26,8 @@ def bkgdGet(cur, table):
     return: dict | dictionary of bkgd terms and counts
     params:
             cur: cursor to skillrank db
-            table: string | db table to retrieve
+          table: string | db table to retrieve
     """
-    # connect to the skillrank database and create cursor
-#    con = mdb.connect(host='localhost', user='root', db='skillrank')
-#    cur = con.cursor()
-    
     # get all terms and counts from table
     cur.execute("SELECT term,count FROM "+table)
     fetch = cur.fetchall()
@@ -178,10 +36,6 @@ def bkgdGet(cur, table):
     d_bkgd = {}
     for term, count in fetch:
         d_bkgd[term] = count
-    
-    # close the database cursor and connection
-#    if cur: cur.close()
-#    if con: con.close()
     
     return d_bkgd
 
@@ -223,11 +77,8 @@ def bestBigrams(words, topWords, N=10, num=100):
         # if one of the two words in the bigram are 
         if w1 in topWords or w2 in topWords:
             
-            # avoid strange short word bigrams
-#            if len(w1+w2) > 8:
-                
-                # keep current results as a "best" bigram
-                nBestBigrams.append( bResults[i] )
+            # keep current results as a "best" bigram
+            nBestBigrams.append( bResults[i] )
         
         # increment loop count
         i += 1
@@ -235,18 +86,18 @@ def bestBigrams(words, topWords, N=10, num=100):
     return nBestBigrams
 
 
-def analyze(cur, jobQuery, terms, x=0.6, nReturn=100, threshold=10):
+def analyze(cur, jobQuery, terms, x=0.6, nReturn=100, threshold=1):
     """
     Main analysis function to get term relevances
     
     return: list[tuple(term, relevance, count)] | "results"
     params:
             cur: cursor to skillrank db
-            jobQuery: string | jobQuery from user input
-            terms: list[string] | list of terms as strings
-            x: float [0,1] | relevance scaling factor
-            nReturn: int | number of top words to return (default=100)
-            threshold: int | minimum count for bkgd filtering (default=10)
+       jobQuery: string | jobQuery from user input
+          terms: list[string] | list of terms as strings
+              x: float [0,1] | relevance scaling factor
+        nReturn: int | number of top words to return (default=100)
+      threshold: int | minimum count for bkgd filtering (default=10)
     """
     # determine if terms are words, bigrams, or trigrams
     length = len(terms[0].split())
@@ -363,7 +214,7 @@ def analyze(cur, jobQuery, terms, x=0.6, nReturn=100, threshold=10):
         
     # perform removal of bigram and jobQuery words and normalize R
     results = [(r[0],str(r[1]/maxRelevance),str(int(float(r[2])))) \
-                         for r in results if r[0] not in toRemove]
+                                  for r in results if r[0] not in toRemove]
     
     # remove pluralities (might break other words only 
     # differing by one extra letter, probably rare/okay)
@@ -377,7 +228,7 @@ def getResults(jobQuery, nJobs, start=0):
     """
     return: list[tuple(term,relevance,count)] | "results"
     params:
-            jobQuery: string | job query from user form
+         jobQuery: string | job query from user form
             nJobs: int | number of jobs to consider
             start: int | index to start indeed.com api search
     """
@@ -403,24 +254,13 @@ def getResults(jobQuery, nJobs, start=0):
         terms += d[-1]
             
     # retrieve ranked results
-    results, biResults = analyze(cur, jobQuery, terms, x=0.6, nReturn=100, threshold=10)            
+    results, biResults = analyze(cur, jobQuery, terms, x=0.6, nReturn=100, threshold=1)            
         
     # close the database cursor and connection
     if cur: cur.close()
     if con: con.close()
     
     return results, biResults
-
-
-def main():
-    
-    # connect to the skillrank database and create cursor
-    con = mdb.connect(host='localhost', user='root', db='skillrank')
-    cur = con.cursor()
-    
-    # close the database cursor and connection
-    if cur: cur.close()
-    if con: con.close()
 
 
 if __name__ == '__main__':

@@ -21,8 +21,8 @@ def getJobURLs(jobQuery, nURLs=1, start=0):
     return: list of strings (each string is a URL to an
             Indeed.com job posting for "jobQuery")
     params:
-            jobQuery: string | search terms for Indeed.com
-                      (preprocessed for +'s rather than spaces, etc.)
+         jobQuery: string | search terms for Indeed.com
+                            (preprocessed for +'s rather than spaces, etc.)
             nURLs: int | number of job posting URL's to return
             start: int | beginning index for api job search
     """
@@ -59,12 +59,11 @@ def getJobURLs(jobQuery, nURLs=1, start=0):
 
 def jdClean(jd):
     """
+    Clean and "tokenize" a job description using regular expressions
+    
     return: processed/cleaned job description
     params:
         jd: string | a string containing an entire "J"ob "D"escription
-        
-    this function does all of the gritty punctuation and common word removal
-    or at least a large portion of it
     """
     # remove remnant mark-up
     jd = re.sub(r'<\w+>', ' ', jd)
@@ -124,8 +123,8 @@ def jdClean(jd):
 
 def parseJobPosting(url):
     """
-    return: jobkey[string] position[string], company[string], 
-                                             location[string], words[list of strings]
+    return: jobkey[string], position[string], company[string], 
+                            location[string], words[list of strings]
     params:
             url: string | url for the job posting to parse
     """
@@ -212,7 +211,7 @@ def threadResults(urls, nThreads=8):
      
     params:
             urls: list[string] | list of urls as strings
-            nThreads: int | number of threads to use (default=8)
+        nThreads: int | number of threads to use (default=8)
     """
     q = Queue()
     for url in urls:
