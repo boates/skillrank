@@ -78,9 +78,8 @@
 	.fightfooter {
 		height:510px;
 		width:800px;
-		margin-left:-80px;
+		margin-left:-60px;
 	}
-	
     </style>
 
 
@@ -343,11 +342,11 @@
 		function cback(results) {
             if (results['items']) {
                 $("#pleaseWait").html('');
-    			bubbles.init(results)
-                makeTable(results)
+    			bubbles.init(results);
+                makeTable(results);
             }
             else {
-             	console.log("no matches for query")
+             	console.log("no matches for query");
             }
 		}
 		

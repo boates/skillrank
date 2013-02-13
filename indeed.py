@@ -129,14 +129,22 @@ def jdClean(jd):
     # remove all upper-case letters
     jd = jd.lower()
     
-    # only keep one-letter words that are C or R
-    jd = re.sub(r'\s[^CR]\s',' ', jd)
-    
     # remove pure numbers
     jd = re.sub(r'\s\d+\s', ' ', jd)
     
     # remove pure puncuations
     jd = re.sub(r'\s[\+\#-]+\s', ' ', jd)
+    
+    # only keep one-letter words that are C or R
+    Nr = jd.split().count('r')
+    Nc = jd.split().count('c')    
+    fix = re.findall(r'\w\w+', jd)
+    jdnew = ''
+    for f in fix: jdnew += f+' '
+    for i in range(Nr): jdnew += 'r '
+    for i in range(Nc): jdnew += 'c '
+    jd = jdnew
+#    jd = re.sub(r'\s[^CR]\s',' ', jd)
     
     # fix "html css" bigrams / get rid of them
     jd = re.sub(r'html\s+css','html and css', jd)
@@ -347,11 +355,3 @@ def _performQuery(jobQuery, nJobs=10, nReturn=20, thresh=2, mag=1.0):
     
     return allwords
 
-
-def main():
-    jobQuery = 'web developer'
-    results = performQuery(jobQuery, nJobs=10, nReturn=20, thresh=100, mag=1.0)
-
-
-if __name__ == '__main__':
-    main()

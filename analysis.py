@@ -395,21 +395,6 @@ def getResults(jobQuery, nJobs, start=0):
     # if no URL's matched for jobQuery
     if not urls: return []
     
-    """    
-    # loop through URL's
-    for url in urls:
-  
-        # retrieve information from URL's job posting
-        jobkey, position, company, location, words = indeed.parseJobPosting(url)
-  
-        # append latest words to terms list
-        terms += words
-        
-        # print useful info to terminal
-        index = 10*start+urls.index(url)+1
-        print index,'# position:',position,'# company:',company,'# location:',location
-    """
-  
     # get indeed job postings using threads for boosted efficieny
     documents = ghlThreads.threadResults(urls, num_threads=8)
         
