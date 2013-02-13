@@ -5,12 +5,16 @@ Author: Brian Boates
 
 Scrape job postings for a given query from
 Indeed.com using the search api for key skills
-analysis
+analysis. Also includes Indeed.com specific 
+threading functions.
+
+GHL's original threading source:
+https://gist.github.com/ghl3/4556336
 """
 import os, sys, re, nltk
-import urllib2
+import urllib2, threading
+from Queue import Queue
 import utils
-import ghlThreads
 
 def getJobURLs(jobQuery, nURLs=1, start=0):
     """
@@ -51,46 +55,6 @@ def getJobURLs(jobQuery, nURLs=1, start=0):
     
     # return only up to nURLs number of URL's for job postings
     return allurls[:nURLs]
-
-
-def rssJobURLs(jobQuery, nJobs=10, start=0):
-    """
-    return: list of strings (each string is a URL to an
-            Indeed.com job posting for "jobQuery")
-    params:
-            jobQuery: string | search terms for Indeed.com
-                      (preprocessed for +'s rather than spaces, etc.)
-            nJobs: int | number of job postings to return
-            start: int | beginning index for api job search
-    """
-    # pre-process job query
-    jobQuery = jobQuery.strip().lower().replace(' ','+')
-    
-    # list for all URL's to be stored
-    allurls = []
-    
-    # loop through each page of 20 job postings for jobQuery
-    for i in range(nJobs//20+1):
-        
-        print 'url retrieval =', len(allurls)/float(nJobs)*100.0, 'percent complete'
-        
-        # rss link for first 10 postings for jobQuery
-        rss = 'http://rss.indeed.com/rss?q='+jobQuery+'&start='+str(i*20)
-        
-        # get the content from rss URL
-        raw = utils.getURL(rss)
-        
-        # parse the raw data for individual job URL's
-        urls = re.findall(r'<link>.*</link>', raw)[2:] # skip first two links
-        
-        # remove the <link> and </link> tages from URL's
-        urls = [u.replace('<link>','').replace('</link>','') for u in urls]
-        
-        # append current page of URL's to list of "all" URL's
-        allurls += urls
-        
-    # return only up to nJobs number of URL's for job postings
-    return allurls[:nJobs]
 
 
 def jdClean(jd):
@@ -160,8 +124,8 @@ def jdClean(jd):
 
 def parseJobPosting(url):
     """
-    return: jobkey[string] position[string], company[string], location[string],
-                                                              words[list of strings]
+    return: jobkey[string] position[string], company[string], 
+                                             location[string], words[list of strings]
     params:
             url: string | url for the job posting to parse
     """
@@ -214,144 +178,59 @@ def parseJobPosting(url):
     return jobkey, position, company, location, words
 
 
-def getTerms(words, commonwords, keywords, threshold=100, magnify=1.0):
+class getIndeed(threading.Thread):
     """
-    return: dictionary of all unique terms and the number of
-            times they appeared in the posting (limited by threshold)
+    A class to download indeed job postings
+    from a shared queue using threads for
+    boosted efficiency
+    """
+    def __init__(self, queue):
+        threading.Thread.__init__(self)
+        self._stop = threading.Event()
+        self.articles = []
+        self.queue = queue
+        
+    def getArticles(self):
+        return self.articles
+        
+    def run(self):
+        while True:
+            if self.queue.empty(): 
+                return
+            url = self.queue.get()
+            returnItems = parseJobPosting(url)
+            self.articles.append(returnItems)
+            print returnItems[:-1]
+
+
+def threadResults(urls, nThreads=8):
+    """
+    Download content from all urls
+    
+    return: list of indeed.parseJobPosting return tuples
+    i.e. [(jobkey, position, company, location, words), ...]
+     
     params:
-            words: list[string] | list of words as strings
-            commonwords: list[string] | list of common words to ignore
-            keywords: list[string] | list of keywords to possibly magnify
-            threshold: int | threshold for counts (i.e. if a term appears more 
-                       than threshold times, it won't be kept; default=100)
-            magnify: float | value to scale keywords counts by (default=1.0 
-                     i.e. no scaling)
+            urls: list[string] | list of urls as strings
+            nThreads: int | number of threads to use (default=8)
     """
-    # consider bigrams and trigrams
-    bigrams, trigrams = [], []
-#    bigrams  = utils.getNgrams(words, N=2)
-#    trigrams = utils.getNgrams(words, N=3)
-    
-    # simplify the words list by removing common words
-    # words = removeCommonWords(words)
-    
-    # make list of all terms (including N-grams)
-    allterms = words + bigrams + trigrams
-    
-    # initialize terms dictionary
-    terms = {}
-    
-    # loop over allterms
-    for term in allterms:
-        
-        # if key is a keyword
-        weight = 1.0
-        if term in keywords:
-            # magnify its importance
-            weight = magnify
-            
-        # retrieve count for current term        
-        c = allterms.count(term)
-        
-        # only add a count for terms appearing less
-        # than threshold and not in commonwords
-        if c <= threshold and term not in commonwords:
-            terms[term] = weight
-        
-    return terms
-
-
-def joinTermsDicts(td1, td2, magnify=1.0):
-    """
-    return: joined terms dictionary with accumulated counts
-    params:
-            td1: dict | first dictionary of terms (already free of common words)
-            td2: dict | first dictionary of terms (already free of common words)
-            keywords: list[string] | list of keywords to magnify importance
-            magnify: float | factor to multiply occurences of keywords by
-                     (default=10.0)
-    """
-    # make sure td2 is the shorter dictionary
-#    if len(td1) < len(td2) and td1 != {}: td1, td2 = td2, td1
-    
-    # loop over terms in td2 and add to td1
-    for key, value in td2.iteritems():
-        
-            # check if key already in td1, simply add to the count
-            if key in td1.keys():
-                td1[key] += td2[key]
-        
-            # else, add a new key to td1
-            else: td1[key] = td2[key]
-        
-    return td1
-
-
-def _performQuery(jobQuery, nJobs=10, nReturn=20, thresh=2, mag=1.0):
-    """
-    return: list[string] | list of N top skills with their rank
-    params:
-        jobQuery: string | query for job search
-        nJobs: int | number of job postings to use in skill search (default=10)
-        nReturn: int | number of skills to return (default=20)
-        thresh: int | threshold for discounting frequently occuring words
-        mag: float | scaling factor for keywords if requested
-    """
-    # pre-process job query
-    jobQuery = jobQuery.strip().lower().replace(' ','+')
-    
-    # get list of keywords for magnification
-    keywords = utils.readKeywords(fname='keywords.txt')
-    
-    # get list of "common" words for removal
-    commonwords = utils.readCommonWords(fname='commonwords.txt') + jobQuery.replace('+',' ').split()
-    
-    # retrieve list of URL's for jobQuery
-    urls = getJobURLs(jobQuery, nJobs=nJobs)
-    
-    # create dict and list to hold ALL terms and words from ALL URL's
-    terms, allwords = {}, []
-    
-    # loop over all job posting URL's
+    q = Queue()
     for url in urls:
+        q.put(url)
         
-        # retrieve information from URL's job posting
-        jobkey, position, company, location, words = parseJobPosting(url)
+    # start threads to consume the queue
+    threads = [] 
+    for i in xrange(nThreads):
+        thread = getIndeed(q)
+        thread.start()
+        threads.append(thread)
         
-        # print useful info to screen
-        print urls.index(url), #url,        
-        print '# position:',position,'# company:',company,'# location:',location
+    # collect results from threads
+    for thread in threads:
+        thread.join()
         
-        # make terms dictionary including desired N-grams
-        # limited by count threshold and/or with keywords magnified
-        terms = joinTermsDicts(terms, getTerms(words, commonwords, keywords, 
-                                               threshold=thresh, magnify=mag) )
-        
-        # append new set of words to the allwords list for Ngram analysis
-        allwords += words
-            
-    # sort the terms by their (possibly magnified) occurence
-    results = []
-    for key, value in sorted(terms.iteritems(), key=lambda (k,v): (v,k)):
-         results.append( (key,str(int(value))) )
-    
-    # bigram collocations
-#    text = nltk.Text(allwords)
-#    print text.collocations(num=20)
-    
-#    jaccard = {}
-#    for word in set(allwords):
-#        jaccard[word] = utils.jaccard([word], allwords)
-#    jresults = []
-#    for key, value in sorted(jaccard.iteritems(), key=lambda (k,v): (v,k)):
-#         jresults.append( (key, str( value )) )
-    
-    # trim results down to requested amount and reverse
-    results = results[-nReturn:][::-1]
-#    results = jresults[-nReturn:][::-1]
-#    results = jresults[::-1]
-    
-#    return results
-    
-    return allwords
-
+    # gather and return all results
+    documents = []
+    for thread in threads:
+        documents += thread.getArticles()
+    return documents

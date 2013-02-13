@@ -9,7 +9,6 @@ from query and bkgd tables
 import os, sys, math
 import MySQLdb as mdb
 import indeed, utils
-import ghlThreads
 
 def nTerms(cur, table):
     """
@@ -396,7 +395,7 @@ def getResults(jobQuery, nJobs, start=0):
     if not urls: return []
     
     # get indeed job postings using threads for boosted efficieny
-    documents = ghlThreads.threadResults(urls, num_threads=8)
+    documents = indeed.threadResults(urls, nThreads=8)
         
     # words lists are the 5th/last item in each
     # tuple returned from threaded documents

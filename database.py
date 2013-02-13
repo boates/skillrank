@@ -11,12 +11,6 @@ DATABASE: "skillrank"
 TABLES:         COLUMNS:
 bkgd_jobkeys:   id | jobkey
 bkgd_words:     id | term   | count
-bkgd_bigrams:   id | term   | count
-bkgd_trigrams:  id | term   | count
-q_jobkeys:      id | term   | count
-q_words:        id | term   | count
-q_bigrams:      id | term   | count
-q_trigrams:     id | term   | count
 """
 import os, sys
 import MySQLdb as mdb
