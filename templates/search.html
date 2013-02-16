@@ -345,6 +345,10 @@
 
 		function cback(results) {
             if (results['items']) {
+
+	            // alter URL
+                window.history.pushState("", "Skill Rank", "/search/"+results['query']);
+
                 $("#pleaseWait").html('');
     			bubbles.init(results);
                 makeTable(results);
@@ -395,16 +399,20 @@
 		// post function
    		var url = "/analyze";
         var Q = $("#query").val();
-        var N = $("#njobs").val();
-        var S = 0;
-   	    $.post(url, {'jobQuery':Q,'nJobs':N,'start':S}, cback);
+   	    $.post(url, {'jobQuery':Q}, cback);
 
 	}
+	
+	function queryURL(query) {
+        $("#query").val(query);
+		visualize();	
+	}
+	
 	</script>
 
 
   </head>
-  <body>
+  <body {% if query %} onload="queryURL('{{ query }}')" {% endif %}>
 
     <div class="container-narrow">
       <div class="masthead">

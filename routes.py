@@ -22,6 +22,12 @@ def search():
     return render_template('search.html')
 
 
+@app.route('/search/<query>')
+def searchTo(query):
+    query = query.replace('+',' ')
+    return render_template('search.html', query=query)
+
+
 @app.route('/about')
 def about():
     return render_template('about.html')
@@ -59,7 +65,9 @@ def runAnalysis():
     
     # set nJobs to 50 ---> good balance of quality/speed
     nJobs = 50
-    start    = int(request.form['start'])
+    
+    # start from the first indeed.com API results
+    start = 0
     
     # set number of bubbles for d3 visualization
     nBubbles = 25
@@ -102,6 +110,9 @@ def runAnalysis():
             dictResults['items'].append({'term':term, 'relevance':relevance,
                                          'count':float(count), 'len':len(term.split())})
                                          
+    # add the jobQuery to the results dictonary for quick reference
+    dictResults['query'] = str(jobQuery).replace(' ','+')
+                                         
     # add results to the cache (keep length below 1000)
     if len(cache) > cacheLimit:
         cache.popitem(last=False)
@@ -112,5 +123,5 @@ def runAnalysis():
 
 
 if __name__ == '__main__':
-#    app.run(debug=True)
-    app.run('0.0.0.0', port=8080)
+    app.run(debug=True)
+#    app.run('0.0.0.0', port=8080)
