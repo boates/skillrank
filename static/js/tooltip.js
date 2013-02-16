@@ -4,6 +4,9 @@
 function CustomTooltip( tooltipId, width ) {
 
     var tooltipId = tooltipId;
+
+    $("#"+tooltipId).remove();
+
     $("body").append("<div class='tooltip' id='" + tooltipId + "'></div>");
 
     var tooltip = $('#'+tooltipId);

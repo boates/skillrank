@@ -88,6 +88,10 @@
 		
 		var bubbles = (function() {
 			
+			// remove previous bubbles and table (if any)
+			$("svg").remove();
+			$("#resultstable").html('');
+			
 		    var w = 800,
 		        h = 600,
 		        m = 0,
@@ -106,7 +110,7 @@
 			.attr("height", h + "px")
 			.attr("width", w + "px"),
 		        circles,
-		        tooltip = CustomTooltip( "posts_tooltip", 240 );
+		        tooltip = CustomTooltip( "posts_tooltip", 240 );			
 		
 			function init(results) {
 			    if ( results ) {
