@@ -7,7 +7,7 @@ Flask based script for Skill Rank web-app
 """
 from flask import Flask, render_template
 from flask import request, jsonify
-import MySQLdb as mdb
+from collections import OrderedDict
 from analysis import getResults
 
 app = Flask(__name__)
@@ -42,15 +42,24 @@ def contact():
     return render_template('contact.html')
 
 
+# dictionary for cached job queries
+cache = OrderedDict()
+cacheLimit = 1000
+
 @app.route('/analyze', methods=['POST'] )
 def runAnalysis():
     
     # get jobQuery and start
     jobQuery = request.form['jobQuery']
-    start    = int(request.form['start'])
+    
+    # check to see if jobQuery already in cache
+    if jobQuery in cache:
+        print 'using cache brosef'
+        return jsonify(cache[jobQuery])
     
     # set nJobs to 50 ---> good balance of quality/speed
     nJobs = 50
+    start    = int(request.form['start'])
     
     # set number of bubbles for d3 visualization
     nBubbles = 25
@@ -93,6 +102,11 @@ def runAnalysis():
             dictResults['items'].append({'term':term, 'relevance':relevance,
                                          'count':float(count), 'len':len(term.split())})
                                          
+    # add results to the cache (keep length below 1000)
+    if len(cache) > cacheLimit:
+        cache.popitem(last=False)
+    cache[jobQuery] = dictResults
+    
     # return in jsonified format
     return jsonify(dictResults)
 
