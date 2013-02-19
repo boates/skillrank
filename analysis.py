@@ -251,7 +251,7 @@ def getResults(jobQuery, nJobs, start=0):
     urls = indeed.getJobURLs(jobQuery, nURLs=nJobs, start=start)
     
     # if no URL's matched for jobQuery
-    if not urls: return []
+    if not urls: return [], [], ''
     
     # get indeed job postings using threads for boosted efficieny
     documents = indeed.threadResults(urls, nThreads=8)
@@ -262,13 +262,17 @@ def getResults(jobQuery, nJobs, start=0):
         terms += d[-1]
             
     # retrieve ranked results
-    results, biResults = analyze(cur, jobQuery, terms, x=0.6, nReturn=100, threshold=1)            
-        
+    results, biResults = analyze(cur, jobQuery, terms, x=0.6, nReturn=100, threshold=1)
+    
+    # create the results string
+    resultsString  = 'Based on '+str(len(terms))+' words scraped from '
+    resultsString += str(len(urls))+' job postings for "'+jobQuery+'"'
+    
     # close the database cursor and connection
     if cur: cur.close()
     if con: con.close()
     
-    return results, biResults
+    return results, biResults, resultsString
 
 
 if __name__ == '__main__':

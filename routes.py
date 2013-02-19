@@ -53,8 +53,6 @@ def contact():
     return render_template('contact.html')
 
 
-
-
 # dictionary for cached job queries
 cache = OrderedDict()
 cacheLimit = 1000
@@ -80,7 +78,13 @@ def runAnalysis():
     nBubbles = 25
     
     # get the results as list[tuple(term,relevance,count)]
-    results, biResults = getResults(jobQuery=jobQuery, nJobs=nJobs, start=start)
+    results, biResults, resultsString = getResults(jobQuery=jobQuery, nJobs=nJobs, start=start)
+    
+    # catch for case with no results
+    if resultsString == '':
+        resultsString = 'No results found for "'+jobQuery+'"'
+        return jsonify({'resultsString':resultsString})
+    
     results += biResults
     
     # sort the list in the most horrible way imaginable
@@ -119,6 +123,9 @@ def runAnalysis():
                                          
     # add the jobQuery to the results dictonary for quick reference
     dictResults['query'] = str(jobQuery).replace(' ','+')
+    
+    # add the resultsString to the results dictionary
+    dictResults['resultsString'] = resultsString
                                          
     # add results to the cache (keep length below 1000)
     if len(cache) > cacheLimit:
@@ -130,5 +137,5 @@ def runAnalysis():
 
 
 if __name__ == '__main__':
-#    app.run(debug=True)
-    app.run('0.0.0.0', port=8080)
+    app.run(debug=True)
+#    app.run('0.0.0.0', port=8080)

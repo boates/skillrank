@@ -349,11 +349,14 @@
 	            // alter URL
                 window.history.pushState("", "Skill Rank", "/search/"+results['query']);
 
-                $("#pleaseWait").html('');
+//                $("#pleaseWait").html('');
+                console.log(results['resultsString'])
     			bubbles.init(results);
                 makeTable(results);
+                $("#pleaseWait").html(results['resultsString']);
             }
             else {
+	            $("#pleaseWait").html(results['resultsString']);
              	console.log("no matches for query");
             }
 		}
