@@ -56,9 +56,11 @@ h1 > small {
     color: #000;
 }
 
+
 a {
       text-decoration: none;
-      color: #ff7f0c;
+/*      color: #ff7f0c;        */
+      color: #08c;
 }
 
 a:visited {

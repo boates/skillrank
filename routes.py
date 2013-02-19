@@ -43,9 +43,16 @@ def source():
     return render_template('source.html')
 
 
+@app.route('/demo')
+def demo():
+    return render_template('demo.html')
+
+
 @app.route('/contact')
 def contact():
     return render_template('contact.html')
+
+
 
 
 # dictionary for cached job queries
