@@ -205,7 +205,9 @@ def analyze(cur, jobQuery, terms, x=0.6, nReturn=100, threshold=1):
     
     # get the best bigrams with artificial relevances (limit to top 5)
     topBigrams = [b for b in topBigrams if b[0] not in [str(jobQuery),str(jobQuery)+'s']][:5]
+    print topBigrams
     topBigrams = [b for b in topBigrams if 'html' not in b]
+    print topBigrams
     biResults = []
     fakeRelevances = [0.60, 0.50, 0.24, 0.12, 0.08, 0.06, 0.04, 0.02, 0.01, 0.01]
     for i in range(len(topBigrams)):
